@@ -1,0 +1,15 @@
+name: Claude PR Description
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-pr-description:
+    uses: your-org/github-workflows-central/.github/workflows/claude-pr-description-reusable.yml@main
+    with:
+      trigger_phrase: "@claude-pr-describe"
+      max_turns: 5
+      # custom_template: "カスタムテンプレートがあれば設定"
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

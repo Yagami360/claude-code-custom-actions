@@ -1,0 +1,99 @@
+name: Claude PR Description
+
+on:
+  workflow_call:
+    inputs:
+      trigger_phrase:
+        description: 'Phrase to trigger PR description generation'
+        required: false
+        default: '@claude-pr-describe'
+        type: string
+      max_turns:
+        description: 'Maximum conversation turns'
+        required: false
+        default: 1
+        type: number
+      custom_template:
+        description: 'Custom PR description template'
+        required: false
+        default: ''
+        type: string
+    secrets:
+      ANTHROPIC_API_KEY:
+        description: 'Anthropic API Key'
+        required: true
+
+jobs:
+  claude-pr-description:
+    if: |
+      github.event_name == 'issue_comment' && 
+      github.event.issue.pull_request && 
+      contains(github.event.comment.body, inputs.trigger_phrase)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git and GitHub CLI
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          gh auth status
+          gh repo view --json url,owner,name
+
+      - name: Run Claude PR Description Generator
+        uses: github-claude/claude-action@v1
+        with:
+          claude_args: |
+            --allowedTools "Bash(gh pr edit *),Bash(gh pr view *)"
+            --max-turns ${{ inputs.max_turns }}
+            ${{ inputs.trigger_phrase != '@claude-pr-describe' && format('--trigger_phrase "{0}"', inputs.trigger_phrase) || '' }}
+            --system-prompt "常に日本語でレスポンスしてください。あなたはPR説明文を生成してPR本体を直接更新するアシスタントです。
+
+            ユーザーが '${{ inputs.trigger_phrase }}' とコメントしたため、このPRの説明文を生成・更新します。
+
+            ${{ inputs.custom_template != '' && format('以下のテンプレートを使用してください: {0}', inputs.custom_template) || 
+            '以下の形式で構造化された説明文を作成:
+
+            ## 📋 変更内容の概要
+            - このPRで何を実装/修正したかを簡潔に説明
+
+            ## 🔍 変更詳細
+            - ファイル別の変更内容
+            - 追加・削除・修正された機能
+
+            ## ✅ 確認事項
+            - [ ] 動作テスト完了
+            - [ ] コードレビュー対象
+            - [ ] ドキュメント更新の必要性
+
+            ## 🚀 影響範囲
+            - この変更が与える影響
+            - 注意すべき点やリスク
+
+            ## 📝 備考
+            - その他補足事項があれば記載' }}
+
+            重要: 必ず以下の手順を実行してPR本体の説明文を更新してください:
+            1. 'gh pr view --json number,title,body' でPR情報を取得
+            2. Git差分を分析して説明文を生成
+            3. 'gh pr edit --body \"[説明文]\"' を実行してPR本体を更新
+            4. 更新完了を報告"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
