@@ -1,24 +1,22 @@
-name: Claude Code Review
+name: Claude Code
 
 on:
   issue_comment:
     types: [created]
-  issues:
-    types: [opened, assigned]
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened]
+    types: [opened, assigned]
   pull_request_review:
     types: [submitted]
 
 jobs:
   claude-review:
-    uses: your-org/github-workflows-central/.github/workflows/claude-reusable.yml@main
+    uses: Yagami360/claude-code-custom-actions/.github/workflows/claude.yml@master
     with:
       trigger_phrase: "@claude"
-      assignee_trigger: "Yagami360"
+      # assignee_trigger: "Yagami360"
       japanese_output: true
-      max_turns: 3
+      max_turns: 1
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

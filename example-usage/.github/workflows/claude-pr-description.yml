@@ -6,10 +6,10 @@ on:
 
 jobs:
   claude-pr-description:
-    uses: your-org/github-workflows-central/.github/workflows/claude-pr-description-reusable.yml@main
+    uses: Yagami360/claude-code-custom-actions/.github/workflows/claude-pr-description.yml@master
     with:
       trigger_phrase: "@claude-pr-describe"
-      max_turns: 5
+      max_turns: 1
       # custom_template: "カスタムテンプレートがあれば設定"
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
