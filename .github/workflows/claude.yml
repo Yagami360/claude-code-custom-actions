@@ -42,18 +42,21 @@ jobs:
   claude:
     if: |
       github.event_name == 'issue_comment' ||
+      github.event_name == 'pull_request_review_comment' ||
+      github.event_name == 'pull_request_review' ||
       (github.event_name == 'issues' && 
        (github.event.action == 'opened' || 
         (github.event.action == 'assigned' && 
+         inputs.assignee_trigger != '' &&
          github.event.assignee.login == inputs.assignee_trigger)))
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       issues: write
       pull-requests: write
-      actions: read
       id-token: write
-    
+      actions: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
