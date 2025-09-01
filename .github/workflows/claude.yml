@@ -64,9 +64,14 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude Code
+        id: claude
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Optional: Allows Claude to read CI results on PRs
+          # additional_permissions: |
+          #   actions: read
 
           # Optional: Customize the trigger phrase
           trigger_phrase: ${{ inputs.trigger_phrase }}
@@ -80,3 +85,11 @@ jobs:
             ${{ inputs.allowed_tools != '' && format('--allowedTools "{0}"', inputs.allowed_tools) || '' }}
             --system-prompt "${{ inputs.system_prompt }}"
             --max-turns ${{ inputs.max_turns }}
+
+          # Optional: Advanced settings configuration
+          # settings: |
+          #   {
+          #     "env": {
+          #       "NODE_ENV": "test"
+          #     }
+          #   }
