@@ -13,16 +13,26 @@ on:
         required: false
         default: ''
         type: string
-      max_turns:
-        description: 'Maximum conversation turns'
+      model:
+        description: 'Claude model to use'
         required: false
-        default: 1
-        type: number
+        default: ''
+        type: string
       system_prompt:
         description: 'Custom system prompt for Claude'
         required: false
         default: '常に日本語で回答してください。コードレビューを行う際は、以下の点に注意してください：1. コーディング標準への準拠、2. 新しいコードにはテストが含まれているか、3. TypeScriptを新しいファイルで使用しているか。簡潔で実用的なフィードバックを提供してください。'
         type: string
+      allowed_tools:
+        description: 'Allowed tools for Claude (e.g., "Bash(npm install),Bash(npm run build)")'
+        required: false
+        default: ''
+        type: string
+      max_turns:
+        description: 'Maximum conversation turns'
+        required: false
+        default: 1
+        type: number
     secrets:
       ANTHROPIC_API_KEY:
         description: 'Anthropic API Key'
@@ -51,12 +61,19 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude Code
-        uses: github-claude/claude-action@v1
+        uses: anthropics/claude-code-action@v1
         with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Optional: Customize the trigger phrase
+          trigger_phrase: ${{ inputs.trigger_phrase }}
+
+          # Optional: Trigger when specific user is assigned to an issue
+          assignee_trigger: ${{ inputs.assignee_trigger }}
+
+          # Configure Claude's behavior with CLI arguments
           claude_args: |
+            ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
+            ${{ inputs.allowed_tools != '' && format('--allowedTools "{0}"', inputs.allowed_tools) || '' }}
             --system-prompt "${{ inputs.system_prompt }}"
-            ${{ inputs.trigger_phrase != '@claude' && format('--trigger_phrase "{0}"', inputs.trigger_phrase) || '' }}
-            ${{ inputs.assignee_trigger != '' && format('--assignee_trigger "{0}"', inputs.assignee_trigger) || '' }}
             --max-turns ${{ inputs.max_turns }}
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

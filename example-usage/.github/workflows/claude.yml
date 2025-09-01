@@ -17,6 +17,12 @@ jobs:
       trigger_phrase: "@claude"
       assignee_trigger: "Yagami360"
       max_turns: 1
+      # model: "claude-opus-4-1-20250805"  # カスタムモデルを使用する場合のみ指定（空文字でデフォルトモデル使用）
+      # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"  # 必要な場合のみ指定
+      # 他の例:
+      # allowed_tools: "Bash(gh pr edit *),Bash(gh pr view *)"  # GitHub CLI操作
+      # allowed_tools: "Bash(docker build *),Bash(docker run *)"  # Docker操作
+      # allowed_tools: "Bash(python -m pytest),Bash(python -m flake8)"  # Python開発
       system_prompt: |
         常に日本語で回答してください。
         コードレビューを行う際は、以下の点に注意してください：
